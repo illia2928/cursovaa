@@ -1,0 +1,152 @@
+#include stdio.h
+#include stdlib.h
+#include time.h
+#include string.h
+
+#define SIZE 10
+#define SHIP_NUM 10
+#define EMPTY '~'
+#define SHIP '#'
+#define HIT 'X'
+#define MISS 'O'
+
+typedef struct {
+    int q;
+    int w;
+} point;
+
+typedef struct {
+    point start;
+    point end;
+    int size;
+    int hint;
+    int hits;
+} ship;
+
+void initialize_field(char field[SIZE][SIZE]) {
+    for (int i = 0; i  SIZE; i++) {
+        for (int j = 0; j  SIZE; j++) {
+            field[i][j] = EMPTY;
+        }
+    }
+}
+
+void print_field(char field[SIZE][SIZE]) {
+    printf(  );
+    for (int i = 0; i  SIZE; i++) {
+        printf(%d , i + 1);
+    }
+    printf(n);
+    for (int i = 0; i  SIZE; i++) {
+        printf(%c , 'a' + i);
+        for (int j = 0; j  SIZE; j++) {
+            printf(%c , field[i][j]);
+        }
+        printf(n);
+    }
+}
+
+int check_hit(point shot, ship ships[SHIP_NUM]) {
+    for (int i = 0; i  SHIP_NUM; i++) {
+        if (shot.q = ships[i].start.q && shot.q = ships[i].end.q &&
+            shot.w = ships[i].start.w && shot.w = ships[i].end.w) {
+            ships[i].hits++;
+            return i;
+        }
+    }
+    return -1;
+}
+
+int check_ships_sunk(ship ships[SHIP_NUM]) {
+    int sunk = 0;
+    for (int i = 0; i  SHIP_NUM; i++) {
+        if (ships[i].hits == ships[i].size) {
+            sunk++;
+        }
+    }
+    return sunk;
+}
+
+int main() {
+    srand(time(NULL));
+    char field1[SIZE][SIZE];
+    char field2[SIZE][SIZE];
+    initialize_field(field1);
+    initialize_field(field2);
+
+    ship ships[SHIP_NUM];
+    for (int i = 0; i  SHIP_NUM; i++) {
+        ships[i].size = rand() % 4 + 1;
+        ships[i].hint = rand() % 2;
+        ships[i].hits = 0;
+        ships[i].start.q = rand() % (SIZE - ships[i].size + 1);
+        ships[i].start.w = rand() % SIZE;
+        if (ships[i].hint) {
+            ships[i].end.q = ships[i].start.q;
+            ships[i].end.w = ships[i].start.w + ships[i].size - 1;
+        } else {
+            ships[i].end.q = ships[i].start.q + ships[i].size - 1;
+            ships[i].end.w = ships[i].start.w;
+        }
+    }
+
+    int shots_fired1 = 0;
+    int shots_fired2 = 0;
+    int current_player = 1; 
+    char (current_field)[SIZE][SIZE] = &field1; 
+
+    while (1) {
+        if (current_player == 1) {
+            printf(igrok nomer 1n);
+            current_field = &field1;
+        } else {
+            printf(igrok nomer 2n);
+            current_field = &field2;
+        }
+
+        print_field(current_field);
+        printf(vvedi cordinatu na primer a1) );
+        char input[3];
+        scanf(%s, input);
+        int row = input[0] - 'a';
+        int col = atoi(&input[1]) - 1;
+        if (row  0  row = SIZE  col  0  col = SIZE) {
+            printf(nevernie cordinatu.n);
+            continue;
+        }
+        point shot = {row, col};
+        if ((current_field)[row][col] == HIT  (current_field)[row][col] == MISS) {
+            printf(vu yzze strelali po eto tche.n);
+            continue;
+        }
+        int hit_ship = check_hit(shot, ships);
+        if (hit_ship != -1) {
+            printf(popal!n);
+            (current_field)[row][col] = HIT;
+            if (ships[hit_ship].hits == ships[hit_ship].size) {
+                printf(vu potopili cjrabln);
+            }
+        } else {
+            printf(promax!n);
+            (current_field)[row][col] = MISS;
+        }
+        if (current_player == 1) {
+            shots_fired1++;
+            if (check_ships_sunk(ships) == SHIP_NUM) {
+                printf(pobeda za igrocom 1!n);
+                printf(igarok 1 zdelal %d vustrelov.n, shots_fired1);
+                break;
+            }
+        } else {
+            shots_fired2++;
+            if (check_ships_sunk(ships) == SHIP_NUM) {
+                printf(pobeda za igrocom 2!n);
+                printf(igarok 2 zdelal %d vustrelov.n, shots_fired2);
+                break;
+            }
+        }
+        current_player = (current_player == 1)  2  1;
+    }
+
+    return 0;
+}
